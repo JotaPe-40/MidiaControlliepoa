@@ -1,0 +1,14 @@
+{
+  "name": "midia-controlliepoa",
+  "version": "1.0.0",
+  "description": "Bridge HTTP para automacao Holyrics -> Companion ou ATEM Direct",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "dependencies": {
+    "atem-connection": "^3.9.0"
+  },
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "license": "MIT"
+}
