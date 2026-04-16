@@ -13,7 +13,8 @@ function loadConfig() {
   }
 
   const raw = fs.readFileSync(CONFIG_PATH, 'utf8');
-  const parsed = JSON.parse(raw);
+  const normalized = raw.replace(/^\uFEFF/, '');
+  const parsed = JSON.parse(normalized);
 
   return {
     listen: {

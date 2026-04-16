@@ -354,3 +354,63 @@ Exemplo minimo:
 	- Feche e abra novamente o terminal.
 	- Se ainda falhar, rode direto com caminho absoluto do Node:
 	  C:\Program Files\nodejs\node.exe src/server.js
+
+
+
+
+
+/*$ErrorActionPreference = "Stop"
+Set-Location "C:\Users\joaop\Documents\GitHub\MIdiaControlliepoa"
+
+$config = Get-Content ".\config.json" -Raw | ConvertFrom-Json
+
+if ($config.controllerMode -ne "mock") {
+$config.controllerMode = "mock"
+}
+
+if ($null -eq $config.switching) {
+$config | Add-Member -NotePropertyName switching -NotePropertyValue ([pscustomobject]@{})
+}
+$config.switching.cooldownMs = 0
+
+$config | ConvertTo-Json -Depth 20 | Set-Content ".\config.json" -Encoding UTF8
+
+$port = [int]$config.listen.port
+$token = [string]$config.authToken
+
+if ([string]::IsNullOrWhiteSpace($token)) {
+throw "Preencha authToken no config.json antes de testar."
+}
+
+$listenerPids = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique
+foreach ($procId in $listenerPids) {
+try { Stop-Process -Id $procId -Force } catch {}
+}
+
+$nodeExe = "C:\Program Files\nodejs\node.exe"
+$proc = Start-Process -FilePath $nodeExe -ArgumentList ".\src\server.js" -WorkingDirectory (Get-Location).Path -PassThru
+
+$health = $null
+for ($i = 0; $i -lt 200; $i++) {
+try {
+$health = Invoke-RestMethod -Uri "http://127.0.0.1:$port/health" -TimeoutSec 2
+break
+} catch {}
+}
+
+if ($null -eq $health) {
+throw "Bridge nao subiu na porta $port."
+}
+
+$show = Invoke-RestMethod -Uri "http://127.0.0.1:$port/event/show?token=$token" -Method Get -TimeoutSec 5
+$hide = Invoke-RestMethod -Uri "http://127.0.0.1:$port/event/hide?token=$token" -Method Get -TimeoutSec 5
+
+"OK: bridge rodando com PID $($proc.Id)"
+"HEALTH: $(($health | ConvertTo-Json -Compress))"
+"SHOW: $(($show | ConvertTo-Json -Compress))"
+"HIDE: $(($hide | ConvertTo-Json -Compress))"
+"Use no Holyrics:"
+" http://SEU_IP:$port/event/show?token=$token"
+" http://SEU_IP:$port/event/hide?token=$token"
+
+*/
