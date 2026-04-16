@@ -1,4 +1,4 @@
-# MIdiaControlliepoa
+# MidiaControlliepoa
 
 Bridge de automacao para trocar entradas da ATEM Mini Pro a partir de eventos do Holyrics, com dois modos de operacao:
 
@@ -40,7 +40,7 @@ Observacao importante sobre USB:
 Execute os comandos no terminal do proprio notebook de midia, dentro da pasta do projeto:
 
 ```powershell
-cd "c:\Users\joaop\Documents\GitHub\MIdiaControlliepoa"
+cd "c:\Users\joaop\Documents\GitHub\MidiaControlliepoa"
 ```
 
 Se rodar fora dessa pasta, o npm nao encontra o package.json do projeto.
@@ -86,7 +86,7 @@ npm start
 Exemplo de execucao no Windows PowerShell:
 
 ```powershell
-cd "c:\Users\joaop\Documents\GitHub\MIdiaControlliepoa"
+cd "c:\Users\joaop\Documents\GitHub\MidiaControlliepoa"
 npm install
 npm start
 ```
@@ -114,31 +114,31 @@ O que ele faz automaticamente:
 No PowerShell, dentro da pasta do projeto:
 
 ```powershell
-cd "c:\Users\joaop\Documents\GitHub\MIdiaControlliepoa"
+cd "c:\Users\joaop\Documents\GitHub\MidiaControlliepoa"
 dotnet publish .\tools\SetupAssistant\SetupAssistant.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
 ```
 
 Saida do executavel:
 
-- tools/SetupAssistant/bin/Release/net8.0/win-x64/publish/MIdiaControlliepoa.SetupAssistant.exe
+- tools/SetupAssistant/bin/Release/net8.0/win-x64/publish/MidiaControlliepoa.SetupAssistant.exe
 
 Executavel pronto para uso rapido neste projeto:
 
-- dist/MIdiaControlliepoa.SetupAssistant.exe
+- dist/MidiaControlliepoa.SetupAssistant.exe
 
 ### Como executar o .exe
 
 Opcao 1 (rodando na pasta do projeto atual):
 
 ```powershell
-cd "c:\Users\joaop\Documents\GitHub\MIdiaControlliepoa"
-.\dist\MIdiaControlliepoa.SetupAssistant.exe
+cd "c:\Users\joaop\Documents\GitHub\MidiaControlliepoa"
+.\dist\MidiaControlliepoa.SetupAssistant.exe
 ```
 
 Opcao 2 (informando pasta do projeto por argumento):
 
 ```powershell
-MIdiaControlliepoa.SetupAssistant.exe --project "c:\Users\joaop\Documents\GitHub\MIdiaControlliepoa"
+MidiaControlliepoa.SetupAssistant.exe --project "c:\Users\joaop\Documents\GitHub\MidiaControlliepoa"
 ```
 
 ### Observacoes de execucao
