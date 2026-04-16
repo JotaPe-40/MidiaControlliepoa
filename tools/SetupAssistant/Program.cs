@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace MIdiaControlliepoa.SetupAssistant;
+namespace MidiaControlliepoa.SetupAssistant;
 
 internal static class Program
 {
@@ -11,29 +11,53 @@ internal static class Program
         WriteIndented = true
     };
 
+    private static readonly List<string> CompletedSteps = new();
+    private static int WarningCount;
+    private static int ErrorCount;
+    private static string? ActiveProjectPath;
+
     private static int Main(string[] args)
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
-        Log("=== MIdiaControlliepoa Setup Assistant ===");
+        Log("=== MidiaControlliepoa Setup Assistant ===");
+
+        bool success = false;
+        string? failureMessage = null;
 
         try
         {
             string projectPath = ResolveProjectPath(args);
+            ActiveProjectPath = projectPath;
+            AddCompletedStep($"Projeto resolvido: {projectPath}");
             Log($"Projeto: {projectPath}");
 
             EnsureNodeAndNpm();
-            EnsureProjectDependencies(projectPath);
-            EnsureAtemConnectionPackage(projectPath);
-            EnsureConfig(projectPath);
+            AddCompletedStep("Node.js e npm verificados");
 
+            EnsureProjectDependencies(projectPath);
+            AddCompletedStep("Dependencias instaladas com npm install");
+
+            EnsureAtemConnectionPackage(projectPath);
+            AddCompletedStep("Dependencia atem-connection validada");
+
+            EnsureConfig(projectPath);
+            AddCompletedStep("Arquivo config.json validado/atualizado");
+
+            success = true;
             Log("Setup concluido com sucesso.");
             Log("Proximo passo: rode 'npm start' dentro da pasta do projeto.");
             return 0;
         }
         catch (Exception ex)
         {
+            failureMessage = ex.Message;
             Error($"Falha no setup: {ex.Message}");
             return 1;
+        }
+        finally
+        {
+            PrintExecutionSummary(success, failureMessage);
+            PauseBeforeExit(args);
         }
     }
 
@@ -54,6 +78,21 @@ internal static class Program
             : Path.GetFullPath(fromArg);
 
         string packageJson = Path.Combine(candidate, "package.json");
+        if (!File.Exists(packageJson) && Path.GetFileName(candidate).Equals("dist", StringComparison.OrdinalIgnoreCase))
+        {
+            string? parentPath = Directory.GetParent(candidate)?.FullName;
+            if (!string.IsNullOrWhiteSpace(parentPath))
+            {
+                string parentPackage = Path.Combine(parentPath, "package.json");
+                if (File.Exists(parentPackage))
+                {
+                    candidate = parentPath;
+                    packageJson = parentPackage;
+                    Log("package.json nao encontrado em dist. Usando pasta pai automaticamente.");
+                }
+            }
+        }
+
         if (!File.Exists(packageJson))
         {
             throw new InvalidOperationException(
@@ -299,7 +338,16 @@ internal static class Program
         };
 
         using var process = new Process { StartInfo = startInfo };
-        process.Start();
+        try
+        {
+            process.Start();
+        }
+        catch (Exception ex)
+        {
+            stdout = string.Empty;
+            stderr = ex.Message;
+            return -1;
+        }
 
         string outText = process.StandardOutput.ReadToEnd();
         string errText = process.StandardError.ReadToEnd();
@@ -322,6 +370,58 @@ internal static class Program
         return process.ExitCode;
     }
 
+    private static void AddCompletedStep(string step)
+    {
+        CompletedSteps.Add(step);
+    }
+
+    private static void PrintExecutionSummary(bool success, string? failureMessage)
+    {
+        Console.WriteLine();
+        Console.WriteLine("========== RESUMO DA EXECUCAO ==========");
+        Console.WriteLine($"Status final: {(success ? "OK" : "FALHA")}");
+
+        if (!string.IsNullOrWhiteSpace(ActiveProjectPath))
+        {
+            Console.WriteLine($"Projeto: {ActiveProjectPath}");
+        }
+
+        Console.WriteLine($"Etapas concluidas: {CompletedSteps.Count}");
+        for (int i = 0; i < CompletedSteps.Count; i++)
+        {
+            Console.WriteLine($"{i + 1}. {CompletedSteps[i]}");
+        }
+
+        if (!success && !string.IsNullOrWhiteSpace(failureMessage))
+        {
+            Console.WriteLine($"Motivo da falha: {failureMessage}");
+        }
+
+        Console.WriteLine($"Avisos: {WarningCount}");
+        Console.WriteLine($"Erros: {ErrorCount}");
+        Console.WriteLine("========================================");
+        Console.WriteLine();
+    }
+
+    private static void PauseBeforeExit(string[] args)
+    {
+        bool noPause = args.Any(a => a.Equals("--no-pause", StringComparison.OrdinalIgnoreCase));
+        if (noPause || Console.IsInputRedirected || Console.IsOutputRedirected)
+        {
+            return;
+        }
+
+        Console.WriteLine("Pressione ENTER para fechar...");
+        try
+        {
+            Console.ReadLine();
+        }
+        catch
+        {
+            // Ignora falhas de leitura para nao mascarar o resultado do setup.
+        }
+    }
+
     private static void Log(string message)
     {
         Console.WriteLine($"[INFO] {message}");
@@ -329,11 +429,13 @@ internal static class Program
 
     private static void Warn(string message)
     {
+        WarningCount++;
         Console.WriteLine($"[WARN] {message}");
     }
 
     private static void Error(string message)
     {
+        ErrorCount++;
         Console.WriteLine($"[ERRO] {message}");
     }
 }
