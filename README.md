@@ -91,6 +91,62 @@ npm install
 npm start
 ```
 
+## Assistente .exe (verificacao e setup automatico)
+
+Foi criado um programa em C# que verifica requisitos e configura o que estiver faltando.
+
+Arquivo fonte do assistente:
+
+- tools/SetupAssistant/Program.cs
+
+O que ele faz automaticamente:
+
+1. Verifica se Node.js e npm estao instalados.
+2. Se faltar Node/npm, tenta instalar Node.js LTS via winget.
+3. Verifica versao minima do Node (18+).
+4. Executa npm install no projeto.
+5. Verifica e instala atem-connection se necessario.
+6. Cria ou corrige config.json com base em config.example.json.
+7. Garante que controllerMode seja valido.
+
+### Como gerar o .exe
+
+No PowerShell, dentro da pasta do projeto:
+
+```powershell
+cd "c:\Users\joaop\Documents\GitHub\MIdiaControlliepoa"
+dotnet publish .\tools\SetupAssistant\SetupAssistant.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
+```
+
+Saida do executavel:
+
+- tools/SetupAssistant/bin/Release/net8.0/win-x64/publish/MIdiaControlliepoa.SetupAssistant.exe
+
+Executavel pronto para uso rapido neste projeto:
+
+- dist/MIdiaControlliepoa.SetupAssistant.exe
+
+### Como executar o .exe
+
+Opcao 1 (rodando na pasta do projeto atual):
+
+```powershell
+cd "c:\Users\joaop\Documents\GitHub\MIdiaControlliepoa"
+.\dist\MIdiaControlliepoa.SetupAssistant.exe
+```
+
+Opcao 2 (informando pasta do projeto por argumento):
+
+```powershell
+MIdiaControlliepoa.SetupAssistant.exe --project "c:\Users\joaop\Documents\GitHub\MIdiaControlliepoa"
+```
+
+### Observacoes de execucao
+
+1. Para instalar Node via winget, pode ser necessario abrir PowerShell como Administrador.
+2. Se o config.json estiver invalido, o assistente cria backup e recria com base no config.example.json.
+3. Depois que o assistente concluir, execute npm start para iniciar o bridge.
+
 ## Endpoints do bridge
 
 Base: http://IP_DO_NOTEBOOK:8787

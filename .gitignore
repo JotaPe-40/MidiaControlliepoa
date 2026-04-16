@@ -2,3 +2,5 @@ node_modules/
 .env
 config.json
 *.log
+tools/**/obj/
+tools/**/bin/
