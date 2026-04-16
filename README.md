@@ -4,8 +4,9 @@ Bridge de automacao para trocar entradas da ATEM Mini Pro a partir de eventos do
 
 1. Modo 1 (companion): Holyrics -> Bridge -> Companion -> ATEM
 2. Modo 2 (atemDirect): Holyrics -> Bridge -> ATEM (direto por rede)
+3. Modo 3 (mock): Holyrics -> Bridge (simulacao, sem ATEM)
 
-Os dois modos coexistem no mesmo projeto. Voce escolhe no arquivo config.json.
+Os tres modos coexistem no mesmo projeto. Voce escolhe no arquivo config.json.
 
 ## Requisitos
 
@@ -21,6 +22,12 @@ Para o modo atemDirect:
 
 - Biblioteca atem-connection (instalada via npm install)
 - Controle direto por IP da ATEM
+
+Para o modo mock:
+
+- Nao precisa Companion
+- Nao precisa ATEM
+- Ideal para validar fluxo HTTP com Holyrics
 
 Observacao importante sobre USB:
 
@@ -146,6 +153,7 @@ MidiaControlliepoa.SetupAssistant.exe --project "c:\Users\joaop\Documents\GitHub
 1. Para instalar Node via winget, pode ser necessario abrir PowerShell como Administrador.
 2. Se o config.json estiver invalido, o assistente cria backup e recria com base no config.example.json.
 3. Depois que o assistente concluir, execute npm start para iniciar o bridge.
+4. Se o winget disser que o Node ja esta instalado, mas node/npm ainda nao forem reconhecidos, feche e abra o Windows/terminal e execute o assistente novamente.
 
 ## Endpoints do bridge
 
@@ -274,6 +282,48 @@ Igual ao modo companion:
 2. curl "http://127.0.0.1:8787/event/show?token=SEU_TOKEN"
 3. curl "http://127.0.0.1:8787/event/hide?token=SEU_TOKEN"
 
+## Modo 3: Mock (teste sem hardware)
+
+Use este modo quando voce quiser testar apenas o Holyrics e o bridge, sem ATEM e sem Companion.
+
+### 1) Configuracao no config.json
+
+Defina apenas:
+
+- controllerMode: mock
+
+Exemplo minimo:
+
+{
+	"listen": {
+		"host": "0.0.0.0",
+		"port": 8787
+	},
+	"authToken": "troque-este-token",
+	"controllerMode": "mock",
+	"logging": true
+}
+
+### 2) Inicie o bridge
+
+1. npm install
+2. npm start
+
+### 3) Configure eventos no Holyrics
+
+1. Mostrar letra/versiculo:
+	 - URL: http://IP_NOTEBOOK:8787/event/show?token=SEU_TOKEN
+	 - Metodo: GET (ou POST)
+2. Esconder letra/versiculo:
+	 - URL: http://IP_NOTEBOOK:8787/event/hide?token=SEU_TOKEN
+	 - Metodo: GET (ou POST)
+
+### 4) Como validar se funcionou
+
+1. Acesse /health e confira controllerMode = mock.
+2. Dispare show/hide no Holyrics.
+3. Veja no terminal do bridge os logs de "Comutacao simulada (mock)".
+
 ## Parametros globais importantes
 
 - switching.cooldownMs
@@ -299,3 +349,8 @@ Igual ao modo companion:
 	- Teste primeiro o endpoint /health
 	- Teste depois /event/show e /event/hide manualmente
 	- Depois valide o gatilho do Holyrics
+
+- node ou npm nao reconhecidos no terminal
+	- Feche e abra novamente o terminal.
+	- Se ainda falhar, rode direto com caminho absoluto do Node:
+	  C:\Program Files\nodejs\node.exe src/server.js

@@ -47,8 +47,8 @@ function loadConfig() {
 
 const config = loadConfig();
 
-if (!['companion', 'atemDirect'].includes(config.controllerMode)) {
-  throw new Error("controllerMode invalido. Use 'companion' ou 'atemDirect'.");
+if (!['companion', 'atemDirect', 'mock'].includes(config.controllerMode)) {
+  throw new Error("controllerMode invalido. Use 'companion', 'atemDirect' ou 'mock'.");
 }
 
 if (config.controllerMode === 'companion') {
@@ -306,7 +306,35 @@ function createController(currentConfig) {
   if (currentConfig.controllerMode === 'companion') {
     return createCompanionController(currentConfig);
   }
+  if (currentConfig.controllerMode === 'mock') {
+    return createMockController();
+  }
   return createAtemDirectController(currentConfig);
+}
+
+function createMockController() {
+  return {
+    mode: 'mock',
+    async switchByOverlayState(visible) {
+      log('Comutacao simulada (mock)', {
+        visible,
+        simulatedAction: visible ? 'show' : 'hide',
+      });
+
+      return {
+        ok: true,
+        mode: 'mock',
+        simulated: true,
+        simulatedAction: visible ? 'show' : 'hide',
+      };
+    },
+    getHealth() {
+      return {
+        mode: 'mock',
+        simulated: true,
+      };
+    },
+  };
 }
 
 const controller = createController(config);

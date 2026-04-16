@@ -105,8 +105,8 @@ internal static class Program
 
     private static void EnsureNodeAndNpm()
     {
-        bool hasNode = TryGetCommandVersion("node", "-v", out string? nodeVersion);
-        bool hasNpm = TryGetCommandVersion("npm", "-v", out string? npmVersion);
+        bool hasNode = TryGetCommandVersion("node", "-v", out string? nodeVersion, out string resolvedNodeCommand);
+        bool hasNpm = TryGetCommandVersion("npm", "-v", out string? npmVersion, out string resolvedNpmCommand);
 
         if (hasNode && hasNpm)
         {
@@ -122,16 +122,42 @@ internal static class Program
             throw new InvalidOperationException("winget nao encontrado. Instale o Node.js 18+ manualmente e execute novamente.");
         }
 
-        RunCommandOrThrow(
+        int wingetExitCode = RunCommand(
             "winget",
             "install OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements --silent",
             Directory.GetCurrentDirectory(),
-            timeoutMs: 10 * 60 * 1000
+            timeoutMs: 10 * 60 * 1000,
+            out string wingetStdout,
+            out string wingetStderr
         );
 
-        if (!TryGetCommandVersion("node", "-v", out nodeVersion) || !TryGetCommandVersion("npm", "-v", out npmVersion))
+        if (wingetExitCode != 0)
         {
-            throw new InvalidOperationException("Node/npm ainda nao disponiveis apos instalacao. Reinicie o terminal e execute novamente.");
+            string wingetOutput = string.Join(
+                "\n",
+                new[] { wingetStdout, wingetStderr }.Where(s => !string.IsNullOrWhiteSpace(s))
+            );
+
+            if (LooksLikeNodeAlreadyInstalledWithoutUpdate(wingetOutput))
+            {
+                Warn("winget informou que o Node.js ja estava instalado e sem atualizacao. Tentando continuar com a instalacao existente...");
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"Comando falhou: winget install OpenJS.NodeJS.LTS --accept-package-agreements --accept-source-agreements --silent\nSaida: {wingetStdout}\nErro: {wingetStderr}"
+                );
+            }
+        }
+
+        bool nodeDetectedAfterWinget = TryGetCommandVersion("node", "-v", out nodeVersion, out resolvedNodeCommand);
+        bool npmDetectedAfterWinget = TryGetCommandVersion("npm", "-v", out npmVersion, out resolvedNpmCommand);
+
+        if (!nodeDetectedAfterWinget || !npmDetectedAfterWinget)
+        {
+            throw new InvalidOperationException(
+                "Node/npm ainda nao disponiveis apos tentativa de instalacao. Se o Node ja estiver instalado, feche e abra novamente o terminal/Windows e execute o assistente de novo."
+            );
         }
 
         Log($"Node instalado: {nodeVersion}");
@@ -152,7 +178,7 @@ internal static class Program
     private static void EnsureProjectDependencies(string projectPath)
     {
         Log("Instalando dependencias do projeto com npm install...");
-        RunCommandOrThrow("npm", "install", projectPath, timeoutMs: 10 * 60 * 1000);
+        RunNpmCommandOrThrow("install", projectPath, timeoutMs: 10 * 60 * 1000);
     }
 
     private static void EnsureAtemConnectionPackage(string projectPath)
@@ -160,8 +186,8 @@ internal static class Program
         Log("Verificando dependencia atem-connection...");
 
         int exitCode = RunCommand(
-            "npm",
-            "ls atem-connection --depth=0",
+            GetCmdExePath(),
+            "/d /c npm ls atem-connection --depth=0",
             projectPath,
             timeoutMs: 60 * 1000,
             out _,
@@ -175,7 +201,7 @@ internal static class Program
         }
 
         Warn("atem-connection nao encontrada. Instalando...");
-        RunCommandOrThrow("npm", "install atem-connection --save", projectPath, timeoutMs: 5 * 60 * 1000);
+        RunNpmCommandOrThrow("install atem-connection --save", projectPath, timeoutMs: 5 * 60 * 1000);
     }
 
     private static void EnsureConfig(string projectPath)
@@ -259,7 +285,8 @@ internal static class Program
     {
         string? mode = config["controllerMode"]?.GetValue<string>();
         if (string.Equals(mode, "companion", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(mode, "atemDirect", StringComparison.OrdinalIgnoreCase))
+            string.Equals(mode, "atemDirect", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(mode, "mock", StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
@@ -282,24 +309,72 @@ internal static class Program
         return exitCode == 0;
     }
 
-    private static bool TryGetCommandVersion(string command, string args, out string? version)
+    private static bool TryGetCommandVersion(string command, string args, out string? version, out string resolvedCommand)
     {
-        int exitCode = RunCommand(command, args, Directory.GetCurrentDirectory(), 30 * 1000, out string stdout, out _);
-        version = exitCode == 0 ? FirstNonEmptyLine(stdout) : null;
-        return exitCode == 0 && !string.IsNullOrWhiteSpace(version);
+        if (command.Equals("npm", StringComparison.OrdinalIgnoreCase))
+        {
+            int npmExit = RunCommand(GetCmdExePath(), $"/d /c npm {args}", Directory.GetCurrentDirectory(), 30 * 1000, out string npmStdout, out _);
+            version = npmExit == 0 ? FirstNonEmptyLine(npmStdout) : null;
+            resolvedCommand = "npm";
+            return npmExit == 0 && !string.IsNullOrWhiteSpace(version);
+        }
+
+        string[] candidates = command.Equals("npm", StringComparison.OrdinalIgnoreCase)
+            ? new[] { "npm", "npm.cmd" }
+            : new[] { command };
+
+        foreach (string candidate in candidates)
+        {
+            int exitCode = RunCommand(candidate, args, Directory.GetCurrentDirectory(), 30 * 1000, out string stdout, out _);
+            version = exitCode == 0 ? FirstNonEmptyLine(stdout) : null;
+            if (exitCode == 0 && !string.IsNullOrWhiteSpace(version))
+            {
+                resolvedCommand = candidate;
+                return true;
+            }
+        }
+
+        version = null;
+        resolvedCommand = command;
+        return false;
+    }
+
+    private static void RunNpmCommandOrThrow(string npmArgs, string workingDirectory, int timeoutMs)
+    {
+        int exitCode = RunCommand(
+            GetCmdExePath(),
+            $"/d /c npm {npmArgs}",
+            workingDirectory,
+            timeoutMs,
+            out string stdout,
+            out string stderr
+        );
+
+        if (exitCode != 0)
+        {
+            throw new InvalidOperationException(
+                $"Comando falhou: npm {npmArgs}\nSaida: {stdout}\nErro: {stderr}"
+            );
+        }
+
+        if (!string.IsNullOrWhiteSpace(stdout))
+        {
+            Log(stdout.Trim());
+        }
+    }
+
+    private static string GetCmdExePath()
+    {
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "cmd.exe");
     }
 
     private static string FirstNonEmptyLine(string text)
     {
-        foreach (string line in text.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
-        {
-            if (!string.IsNullOrWhiteSpace(line))
-            {
-                return line.Trim();
-            }
-        }
-
-        return string.Empty;
+        return text
+            .Split(new[] { "\r\n", "\n" }, StringSplitOptions.None)
+            .Where(line => !string.IsNullOrWhiteSpace(line))
+            .Select(line => line.Trim())
+            .FirstOrDefault() ?? string.Empty;
     }
 
     private static void RunCommandOrThrow(string fileName, string args, string workingDirectory, int timeoutMs)
@@ -318,6 +393,65 @@ internal static class Program
         }
     }
 
+    private static bool LooksLikeNodeAlreadyInstalledWithoutUpdate(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return false;
+        }
+
+        string normalized = text.ToLowerInvariant();
+        return
+            (normalized.Contains("pacote existente") && normalized.Contains("nenhuma atualiza")) ||
+            (normalized.Contains("already installed") && normalized.Contains("no available upgrade")) ||
+            (normalized.Contains("already installed") && normalized.Contains("no newer package version"));
+    }
+
+    private static string BuildEffectivePath()
+    {
+        var unique = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var ordered = new List<string>();
+
+        void AddPathEntries(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                return;
+            }
+
+            foreach (string piece in raw.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (string.IsNullOrWhiteSpace(piece))
+                {
+                    continue;
+                }
+
+                if (unique.Add(piece))
+                {
+                    ordered.Add(piece);
+                }
+            }
+        }
+
+        AddPathEntries(Environment.GetEnvironmentVariable("PATH"));
+        AddPathEntries(Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User));
+        AddPathEntries(Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Machine));
+
+        string programFilesNode = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "nodejs");
+        if (Directory.Exists(programFilesNode))
+        {
+            AddPathEntries(programFilesNode);
+        }
+
+        string localAppDataNode = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "nodejs");
+        if (Directory.Exists(localAppDataNode))
+        {
+            AddPathEntries(localAppDataNode);
+        }
+
+        return string.Join(Path.PathSeparator, ordered);
+    }
+
     private static int RunCommand(
         string fileName,
         string args,
@@ -326,9 +460,12 @@ internal static class Program
         out string stdout,
         out string stderr)
     {
+        string effectivePath = BuildEffectivePath();
+        string resolvedFileName = ResolveExecutablePath(fileName, effectivePath) ?? fileName;
+
         var startInfo = new ProcessStartInfo
         {
-            FileName = fileName,
+            FileName = resolvedFileName,
             Arguments = args,
             WorkingDirectory = workingDirectory,
             CreateNoWindow = true,
@@ -336,6 +473,11 @@ internal static class Program
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
+
+        if (!string.IsNullOrWhiteSpace(effectivePath))
+        {
+            startInfo.Environment["PATH"] = effectivePath;
+        }
 
         using var process = new Process { StartInfo = startInfo };
         try
@@ -368,6 +510,51 @@ internal static class Program
         stdout = outText;
         stderr = errText;
         return process.ExitCode;
+    }
+
+    private static string? ResolveExecutablePath(string fileName, string effectivePath)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return null;
+        }
+
+        if (Path.IsPathRooted(fileName) || fileName.Contains(Path.DirectorySeparatorChar) || fileName.Contains(Path.AltDirectorySeparatorChar))
+        {
+            return File.Exists(fileName) ? fileName : null;
+        }
+
+        string[] directories = effectivePath
+            .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        bool hasExtension = Path.HasExtension(fileName);
+        string[] extensions;
+        if (hasExtension)
+        {
+            extensions = new[] { string.Empty };
+        }
+        else
+        {
+            string rawPathext = Environment.GetEnvironmentVariable("PATHEXT") ?? ".EXE;.CMD;.BAT;.COM";
+            extensions = rawPathext
+                .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(ext => ext.StartsWith('.') ? ext : "." + ext)
+                .ToArray();
+        }
+
+        foreach (string dir in directories)
+        {
+            foreach (string ext in extensions)
+            {
+                string candidatePath = Path.Combine(dir, fileName + ext);
+                if (File.Exists(candidatePath))
+                {
+                    return candidatePath;
+                }
+            }
+        }
+
+        return null;
     }
 
     private static void AddCompletedStep(string step)
