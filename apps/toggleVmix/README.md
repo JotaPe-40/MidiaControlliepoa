@@ -21,6 +21,9 @@ npm start
 ```
 
 Importante: rode os comandos na pasta `apps/toggleVmix` (nao dentro de `src`).
+Para uma maquina nova, basta ter Node.js e npm instalados.
+
+Se voce clonou uma versao antiga do repositorio, atualize antes de testar, porque a correcao do Electron faltando `path.txt` depende do `prestart` e do `postinstall`.
 
 ## Erro comum (electron path.txt)
 
@@ -36,6 +39,8 @@ if (Test-Path package-lock.json) { Remove-Item -Force package-lock.json }
 npm install
 npm start
 ```
+
+Se o erro persistir, rode `npm run postinstall` dentro da pasta do app e tente `npm start` de novo.
 
 Os avisos `npm warn deprecated` sao de dependencias transitivas do empacotador e nao bloqueiam a execucao do app.
 
