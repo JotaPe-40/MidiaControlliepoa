@@ -1,16 +1,14 @@
 # Toggle vMix
 
-API local com uma pequena janela desktop para ligar e desligar a integracao entre Holyrics e vMix.
+API local com um painel web leve para ligar e desligar a integracao entre Holyrics e vMix.
 
 ## Status atual
 
 Primeira entrega em andamento:
 
-- janela pequena no canto inferior da tela
-- sempre em primeiro plano
+- interface web acessada no navegador
 - switch on/off para a integracao
 - servidor HTTP local escutando as rotas do Holyrics
-- confirmacao ao fechar
 
 ## Como executar em desenvolvimento
 
@@ -23,41 +21,22 @@ npm start
 Importante: rode os comandos na pasta `apps/toggleVmix` (nao dentro de `src`).
 Para uma maquina nova, basta ter Node.js e npm instalados.
 
-Se voce clonou uma versao antiga do repositorio, atualize antes de testar, porque a correcao do Electron faltando `path.txt` depende do `prestart` e do `postinstall`.
+Depois de iniciar, abra a interface em:
 
-## Erro comum (electron path.txt)
+`http://127.0.0.1:5000`
 
-Se aparecer erro `ENOENT ... node_modules/electron/path.txt`, normalmente o Electron foi instalado sem concluir o postinstall.
+## Observacao sobre dependencias
 
-Passos de correcao (PowerShell):
-
-```powershell
-cd "c:\Users\joaop\Documents\GitHub\MIdiaControlliepoa\apps\toggleVmix"
-npm config set ignore-scripts false
-if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules }
-if (Test-Path package-lock.json) { Remove-Item -Force package-lock.json }
-npm install
-npm start
-```
-
-Se o erro persistir, rode `npm run postinstall` dentro da pasta do app e tente `npm start` de novo.
-
-Os avisos `npm warn deprecated` sao de dependencias transitivas do empacotador e nao bloqueiam a execucao do app.
-
-## Executavel
-
-Ao compilar com `npm run build`, o executavel portable fica em `dist/` dentro desta pasta:
-
-- `dist/ToggleVMix-Portable-0.1.0.exe`
-
-Se a versao mudar, o nome do arquivo tambem muda.
+Esta versao nao usa Electron. Se voce estiver com um clone antigo, atualize o repositorio para remover qualquer dependencia velha de Electron ou `electron-prebuilt`.
 
 ## Rotas
 
-O app escuta apenas estas rotas para o Holyrics:
+O app escuta estas rotas para o Holyrics e para o painel web:
 
 - `GET` ou `POST` `/holyrics/project` -> chama `vmix-1`
 - `GET` ou `POST` `/holyrics/remove` -> chama `vmix-2`
+- `GET` `/api/state` -> estado atual da integracao
+- `POST` `/api/toggle` -> alterna a integracao
 
 Quando a integracao estiver desligada, a resposta e controlada com erro `503`.
 
@@ -80,12 +59,19 @@ Edite `config.json` para ajustar as URLs do vMix e a porta da API local.
 - `vmix.vmix1Url`: endpoint usado quando a letra/versiculo e projetado
 - `vmix.vmix2Url`: endpoint usado quando a letra/versiculo e removido
 - `api.port`: porta local da API
+- `api.host`: host local, normalmente `0.0.0.0`
+
+## Execucao
+
+Ao rodar `npm start`, o servidor sobe e a UI fica disponivel no navegador. O app guarda o estado local em um arquivo por usuario, fora da pasta do projeto.
 
 ## Estrutura
 
-- `src/main.js`: processo principal do Electron e orquestracao da API
-- `src/api-server.js`: servidor HTTP local com as rotas do Holyrics
+- `src/main.js`: servidor HTTP principal e roteamento do painel
+- `src/renderer.html`: interface web do painel
+- `src/renderer.js`: logica do painel no navegador
+- `src/styles.css`: visual do painel
+- `src/api-server.js`: helper do backend das rotas Holyrics
 - `src/holyrics-adapter.js`: ponte para as URLs do vMix
 - `src/trigger-state.js`: estado local da integracao
 - `src/config.js`: carregamento da configuracao
-- `src/renderer.js`: interface da janela

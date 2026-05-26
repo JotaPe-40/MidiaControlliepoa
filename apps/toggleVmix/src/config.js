@@ -45,7 +45,7 @@ function mergeConfig(base, override) {
   };
 }
 
-function loadConfig(baseDir = process.cwd()) {
+function loadConfig(baseDir = path.resolve(__dirname, '..')) {
   const configPath = path.resolve(baseDir, 'config.json');
 
   if (!fs.existsSync(configPath)) {
