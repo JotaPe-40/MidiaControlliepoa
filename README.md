@@ -8,6 +8,15 @@ Bridge de automacao para trocar entradas da ATEM Mini Pro a partir de eventos do
 
 Os tres modos coexistem no mesmo projeto. Voce escolhe no arquivo config.json.
 
+## Organizacao do repositorio
+
+Este repo agora abriga dois programas independentes em `apps`:
+
+- Programa antigo: `apps/bridge-antigo`
+- Programa novo: `apps/toggleVmix`
+
+Nao ha compartilhamento de codigo, dependencias ou configuracao entre eles. Cada um pode ser executado e evoluido separadamente.
+
 ## Requisitos
 
 - Node.js 18+
@@ -36,11 +45,12 @@ Observacao importante sobre USB:
 
 ## Estrutura
 
-- src/server.js: servidor HTTP e logica de comutacao
-- config.example.json: modelo completo para os 2 modos
-- config.json: configuracao ativa
+- apps/bridge-antigo: programa original do bridge, agora isolado em sua propria pasta
+- apps/toggleVmix: painel desktop novo para o fluxo Holyrics -> vMix
 
 ## Instalacao
+
+As instrucoes abaixo sao do layout antigo do repositório e devem ser consideradas legado. Para executar os apps atuais, use os caminhos em `apps/bridge-antigo` e `apps/toggleVmix`.
 
 ### Onde rodar os comandos
 

@@ -1,0 +1,17 @@
+{
+  "name": "togglevmix",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Painel desktop para controlar os gatilhos do Holyrics ligados ao vMix",
+  "main": "src/main.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "check": "node --check src/main.js && node --check src/renderer.js"
+  },
+  "devDependencies": {
+    "electron": "^42.2.0"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,20 @@
+{
+  "api": {
+    "host": "0.0.0.0",
+    "port": 5000
+  },
+  "holyrics": {
+    "triggerPauseMode": "receiver",
+    "tag": "",
+    "receiver": ""
+  },
+  "vmix": {
+    "vmix1Url": "http://127.0.0.1/vmix/vmix-1",
+    "vmix2Url": "http://127.0.0.1/vmix/vmix-2",
+    "timeoutMs": 3000
+  },
+  "state": {
+    "integrationEnabled": true
+  },
+  "logging": true
+}

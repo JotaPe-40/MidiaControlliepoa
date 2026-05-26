@@ -1,5 +1,5 @@
 {
-  "name": "midia-controlliepoa",
+  "name": "midia-controlliepoa-bridge-antigo",
   "version": "1.0.0",
   "description": "Bridge HTTP para automacao Holyrics -> Companion ou ATEM Direct",
   "main": "src/server.js",

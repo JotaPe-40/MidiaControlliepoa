@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Toggle vMix</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="panel">
+      <header>
+        <p class="eyebrow">Controle local</p>
+        <h1>Toggle vMix</h1>
+        <p class="subtitle">Liga ou desliga os gatilhos do Holyrics.</p>
+      </header>
+
+      <section class="status-card">
+        <div>
+          <p class="label">Estado da integracao</p>
+          <strong id="stateLabel">Carregando...</strong>
+        </div>
+        <button id="toggleButton" type="button">...</button>
+      </section>
+
+      <section class="route-card">
+        <p class="label">Rotas Holyrics</p>
+        <small>/holyrics/project e /holyrics/remove</small>
+      </section>
+
+      <footer>
+        <small id="detailLabel">O app fica sempre em primeiro plano.</small>
+      </footer>
+    </main>
+
+    <script src="./renderer.js"></script>
+  </body>
+</html>
