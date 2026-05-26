@@ -20,6 +20,14 @@ npm install
 npm start
 ```
 
+## Executavel
+
+Ao compilar com `npm run build`, o executavel portable fica em `dist/` dentro desta pasta:
+
+- `dist/ToggleVMix-Portable-0.1.0.exe`
+
+Se a versao mudar, o nome do arquivo tambem muda.
+
 ## Rotas
 
 O app escuta apenas estas rotas para o Holyrics:

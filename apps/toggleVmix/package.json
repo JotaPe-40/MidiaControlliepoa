@@ -8,10 +8,31 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron .",
-    "check": "node --check src/main.js && node --check src/renderer.js"
+    "check": "node --check src/main.js && node --check src/renderer.js",
+    "build": "electron-builder --win portable"
   },
   "devDependencies": {
-    "electron": "^42.2.0"
+    "electron": "^42.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.midiacontrolliepoa.togglevmix",
+    "productName": "ToggleVMix",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "config.json",
+      "package.json"
+    ],
+    "portable": {
+      "artifactName": "ToggleVMix-Portable-${version}.${ext}"
+    },
+    "win": {
+      "target": ["portable"],
+      "signAndEditExecutable": false
+    }
   },
   "license": "MIT"
 }
