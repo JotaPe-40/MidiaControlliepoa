@@ -8,7 +8,7 @@ function getStateFilePath() {
 
 function getDefaultState() {
   return {
-    enabled: false,
+    integrationEnabled: false,
     updatedAt: null,
   };
 }
@@ -21,9 +21,17 @@ function loadState() {
     }
 
     const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const normalizedIntegrationEnabled =
+      typeof parsed.integrationEnabled === 'boolean'
+        ? parsed.integrationEnabled
+        : typeof parsed.enabled === 'boolean'
+          ? parsed.enabled
+          : getDefaultState().integrationEnabled;
+
     return {
       ...getDefaultState(),
       ...parsed,
+      integrationEnabled: normalizedIntegrationEnabled,
     };
   } catch {
     return getDefaultState();

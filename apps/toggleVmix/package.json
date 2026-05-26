@@ -6,8 +6,11 @@
   "main": "src/main.js",
   "type": "commonjs",
   "scripts": {
+    "prestart": "node scripts/ensure-electron.js",
     "start": "electron .",
+    "predev": "node scripts/ensure-electron.js",
     "dev": "electron .",
+    "postinstall": "node scripts/ensure-electron.js",
     "check": "node --check src/main.js && node --check src/renderer.js",
     "build": "electron-builder --win portable"
   },

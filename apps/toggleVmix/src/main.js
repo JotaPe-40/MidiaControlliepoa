@@ -101,7 +101,7 @@ function setIntegrationEnabled(enabled) {
 }
 
 app.whenReady().then(async () => {
-  config = loadConfig();
+  config = loadConfig(app.getAppPath());
   currentState = loadState(config) || getDefaultState(config);
   holyricsAdapter = createHolyricsAdapter(config);
   apiServer = createApiServer({

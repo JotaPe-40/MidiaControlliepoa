@@ -20,6 +20,25 @@ npm install
 npm start
 ```
 
+Importante: rode os comandos na pasta `apps/toggleVmix` (nao dentro de `src`).
+
+## Erro comum (electron path.txt)
+
+Se aparecer erro `ENOENT ... node_modules/electron/path.txt`, normalmente o Electron foi instalado sem concluir o postinstall.
+
+Passos de correcao (PowerShell):
+
+```powershell
+cd "c:\Users\joaop\Documents\GitHub\MIdiaControlliepoa\apps\toggleVmix"
+npm config set ignore-scripts false
+if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules }
+if (Test-Path package-lock.json) { Remove-Item -Force package-lock.json }
+npm install
+npm start
+```
+
+Os avisos `npm warn deprecated` sao de dependencias transitivas do empacotador e nao bloqueiam a execucao do app.
+
 ## Executavel
 
 Ao compilar com `npm run build`, o executavel portable fica em `dist/` dentro desta pasta:
