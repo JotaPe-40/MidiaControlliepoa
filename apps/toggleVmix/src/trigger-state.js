@@ -1,23 +1,30 @@
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
-const { app } = require('electron');
 
 function getStateFilePath() {
-  return path.join(app.getPath('userData'), 'togglevmix-state.json');
+  const configuredPath = process.env.TOGGLEVMIX_STATE_FILE;
+
+  if (configuredPath) {
+    return path.resolve(configuredPath);
+  }
+
+  return path.join(os.homedir(), '.togglevmix', 'state.json');
 }
 
-function getDefaultState() {
+function getDefaultState(config = {}) {
   return {
-    integrationEnabled: false,
+    integrationEnabled: config.state?.integrationEnabled ?? false,
     updatedAt: null,
+    lastAction: null,
   };
 }
 
-function loadState() {
+function loadState(config = {}) {
   try {
     const filePath = getStateFilePath();
     if (!fs.existsSync(filePath)) {
-      return getDefaultState();
+      return getDefaultState(config);
     }
 
     const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -26,15 +33,15 @@ function loadState() {
         ? parsed.integrationEnabled
         : typeof parsed.enabled === 'boolean'
           ? parsed.enabled
-          : getDefaultState().integrationEnabled;
+          : getDefaultState(config).integrationEnabled;
 
     return {
-      ...getDefaultState(),
+      ...getDefaultState(config),
       ...parsed,
       integrationEnabled: normalizedIntegrationEnabled,
     };
   } catch {
-    return getDefaultState();
+    return getDefaultState(config);
   }
 }
 

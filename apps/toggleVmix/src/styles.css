@@ -8,76 +8,153 @@ body {
   height: 100%;
   margin: 0;
   font-family: Segoe UI, Arial, sans-serif;
-  background: linear-gradient(180deg, #141824 0%, #0d1016 100%);
-  color: #f5f7fb;
+  color: #f4f7fb;
+  background:
+    radial-gradient(circle at top left, rgba(121, 192, 255, 0.28), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(118, 242, 179, 0.18), transparent 30%),
+    linear-gradient(180deg, #0c111a 0%, #090d14 100%);
 }
 
 body {
-  padding: 14px;
+  min-height: 100%;
+  padding: 24px;
 }
 
-.panel {
+.shell {
+  max-width: 960px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  height: 100%;
+  gap: 20px;
+  min-height: calc(100vh - 48px);
+}
+
+.hero,
+.card,
+.status-pill {
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  padding: 16px;
-  background: rgba(10, 14, 20, 0.92);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  background: rgba(11, 15, 22, 0.82);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.34);
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-radius: 24px;
+  padding: 24px;
 }
 
 .eyebrow,
 .label,
 .subtitle,
-small {
+.detail,
+small,
+.route-list {
   margin: 0;
-  color: rgba(245, 247, 251, 0.72);
+  color: rgba(244, 247, 251, 0.76);
 }
 
 h1 {
-  margin: 4px 0 6px;
-  font-size: 1.35rem;
+  margin: 4px 0 10px;
+  font-size: clamp(2rem, 3vw, 3.2rem);
+  line-height: 1;
 }
 
-.status-card {
+.subtitle {
+  max-width: 60ch;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.status-pill {
+  align-self: flex-start;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.status-pill.is-off {
+  color: #ffcf99;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.card.emphasis {
+  grid-column: span 2;
+  background: linear-gradient(180deg, rgba(20, 28, 42, 0.94), rgba(11, 15, 22, 0.92));
+}
+
+.card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 14px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.05);
+  gap: 16px;
 }
 
-.route-card {
+.route-list {
+  padding-left: 18px;
+  line-height: 1.8;
+}
+
+.button-row {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.04);
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  padding: 4px 2px 16px;
 }
 
 #stateLabel {
   display: block;
-  font-size: 1.1rem;
-  margin-top: 4px;
+  font-size: 1.2rem;
+  margin-top: 2px;
+}
+
+.detail {
+  line-height: 1.55;
+}
+
+code {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f4f7fb;
 }
 
 button {
   border: 0;
   border-radius: 999px;
-  padding: 12px 16px;
+  padding: 12px 18px;
   font-weight: 700;
   color: #0b0f14;
-  background: #d7dde8;
+  background: linear-gradient(180deg, #e9eef8, #c7d2e7);
   cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
 }
 
 button.is-on {
-  background: #68e18e;
+  background: linear-gradient(180deg, #90f0af, #5ad889);
 }
 
 button:disabled {
@@ -85,6 +162,41 @@ button:disabled {
   cursor: wait;
 }
 
-footer {
-  margin-top: auto;
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button.ghost {
+  color: #f4f7fb;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+button.ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+@media (max-width: 780px) {
+  body {
+    padding: 14px;
+  }
+
+  .hero,
+  .card {
+    border-radius: 18px;
+  }
+
+  .hero,
+  .card-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card.emphasis {
+    grid-column: span 1;
+  }
 }

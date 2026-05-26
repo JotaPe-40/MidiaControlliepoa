@@ -7,28 +7,54 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="panel">
-      <header>
-        <p class="eyebrow">Controle local</p>
-        <h1>Toggle vMix</h1>
-        <p class="subtitle">Liga ou desliga os gatilhos do Holyrics.</p>
-      </header>
-
-      <section class="status-card">
+    <main class="shell">
+      <section class="hero">
         <div>
-          <p class="label">Estado da integracao</p>
-          <strong id="stateLabel">Carregando...</strong>
+          <p class="eyebrow">API local + painel web</p>
+          <h1>Toggle vMix</h1>
+          <p class="subtitle">Controle a integracao Holyrics e vMix em uma pagina leve, sem Electron.</p>
         </div>
-        <button id="toggleButton" type="button">...</button>
+        <div class="status-pill" id="statusPill">Carregando</div>
       </section>
 
-      <section class="route-card">
-        <p class="label">Rotas Holyrics</p>
-        <small>/holyrics/project e /holyrics/remove</small>
+      <section class="grid">
+        <article class="card emphasis">
+          <div class="card-head">
+            <div>
+              <p class="label">Estado da integracao</p>
+              <strong id="stateLabel">Carregando...</strong>
+            </div>
+            <button id="toggleButton" type="button">...</button>
+          </div>
+          <p class="detail" id="detailLabel">Aguardando conexao com a API local.</p>
+        </article>
+
+        <article class="card">
+          <p class="label">Rotas Holyrics</p>
+          <ul class="route-list">
+            <li><code>/holyrics/project</code> -> chama <code>vmix-1</code></li>
+            <li><code>/holyrics/remove</code> -> chama <code>vmix-2</code></li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <p class="label">Teste manual</p>
+          <div class="button-row">
+            <button id="projectButton" type="button" class="ghost">Acionar project</button>
+            <button id="removeButton" type="button" class="ghost">Acionar remove</button>
+          </div>
+          <p class="detail" id="actionResult">Nenhuma acao executada ainda.</p>
+        </article>
+
+        <article class="card">
+          <p class="label">URL local</p>
+          <strong id="baseUrlLabel">http://127.0.0.1:5000</strong>
+          <p class="detail">Abra essa URL no navegador da maquina onde o app esta rodando.</p>
+        </article>
       </section>
 
-      <footer>
-        <small id="detailLabel">O app fica sempre em primeiro plano.</small>
+      <footer class="footer">
+        <small id="footerLabel">Pronto para controlar o Holyrics.</small>
       </footer>
     </main>
 
