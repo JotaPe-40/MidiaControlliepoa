@@ -1,0 +1,17 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.midiacontrolliepoa.togglevmix
+productName: ToggleVMix
+files:
+  - filter:
+      - src/**/*
+      - config.json
+      - package.json
+portable:
+  artifactName: ToggleVMix-Portable-${version}.${ext}
+win:
+  target:
+    - portable
+  signAndEditExecutable: false
+electronVersion: 42.2.0
